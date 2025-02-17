@@ -58,7 +58,52 @@ def format_scenario_output(response, params):
         print(f"  Rake:       {params['rake']}°")
 
     print("\nServer Response:")
-    print(response)
+    print(f"  Scenario ID: {response.strip()}")
+
+
+def format_info_output(response):
+    """Format the output of a scenario info request in a readable way."""
+    try:
+        data = json.loads(response)
+    except json.JSONDecodeError:
+        print("Error: Invalid response from server.")
+        return
+
+    print("\nScenario Details:")
+    print("=" * 40)
+    print(f"  ID:         {data['id']}")
+    print(f"  Timestamp:  {data['timestamp']}")
+    print("-" * 40)
+    print(f"  Magnitude:  {data['params']['magnitude']}")
+    print(f"  Longitude:  {data['params']['longitude']}")
+    print(f"  Latitude:   {data['params']['latitude']}")
+    print(f"  Depth:      {data['params']['depth']} km")
+
+    if data["params"].get("strike") is not None:
+        print(f"  Strike:     {data['params']['strike']}°")
+    if data["params"].get("dip") is not None:
+        print(f"  Dip:        {data['params']['dip']}°")
+    if data["params"].get("rake") is not None:
+        print(f"  Rake:       {data['params']['rake']}°")
+
+    print("=" * 40)
+
+
+def format_list_output(response):
+    """Format the output of the list command in a readable way."""
+    if "No jobs recorded" in response:
+        print("\nNo scenarios found.\n")
+        return
+
+    print("\nStored Scenarios:")
+    print("=" * 40)
+
+    for line in response.split("\n"):
+        if line.strip():
+            parts = line.split(" - ")
+            print(f"  {parts[0]}  |  {parts[1]}  |  Magnitude: {parts[2]}")
+
+    print("=" * 40)
 
 
 def main():
@@ -127,11 +172,11 @@ def main():
 
     elif args.command == "list":
         response = send_command(host, port, "list")
-        print(response)
+        format_list_output(response)
 
     elif args.command == "info":
         response = send_command(host, port, f"info {args.id}")
-        print(response)
+        format_info_output(response)
 
     elif args.command == "delete":
         response = send_command(host, port, f"delete {args.id}")
