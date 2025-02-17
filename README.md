@@ -9,21 +9,6 @@ It allows users to launch new simulations, retrieve stored calculations, and man
 - Manage stored simulations (list, delete, or reset the database).
 - Flexible configuration of server host and port.
 
-## Installation
-
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/yourusername/shakeserver.git
-   cd shakeserver
-   ```
-
-2. Make sure Python 3 is installed (recommended: Python 3.10+).
-
-3. Make urgentshake.sh executable:
-   ```sh
-   chmod +x urgentshake.sh
-   ```
-
 ## Running the Server
 
 The ShakeServer must be running before executing any client commands.
@@ -131,15 +116,9 @@ Example Output:
 All jobs deleted.
 ```
 
-## Help and Usage
-To view help for the client:
+### Display help information
 ```sh
 python3 shakeclient.py --help
-```
-
-To view help for the server:
-```sh
-python3 shakeserver.py --help
 ```
 
 ## Configuration
@@ -148,10 +127,13 @@ python3 shakeserver.py --help
 - All scenarios are stored in a JSON file (shake_history.json).
 
 ## License
-This project is licensed under the MIT License.
+Copyright (c) 2019, ShakeLab Developers
 
-## Contributing
-Feel free to open issues or submit pull requests to improve the project.
+ShakeLab is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-## Contact
-For any questions or suggestions, please contact [your email or GitHub profile].
+You should have received a copy of the GNU General Public License with this download. If not, see http://www.gnu.org/licenses/
+
+## Disclaimer
+ShakeServer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+The authors of the software assume no liability for use of the software.
