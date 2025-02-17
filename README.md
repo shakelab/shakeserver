@@ -5,7 +5,7 @@ It allows users to launch new simulations, retrieve stored calculations, and man
 
 ## Features
 - Start a new seismic scenario simulation with required and optional parameters.
-- Retrieve information about past simulations.
+- Retrieve information about past simulations in a well-formatted output.
 - Manage stored simulations (list, delete, or reset the database).
 - Flexible configuration of server host and port.
 
@@ -69,20 +69,20 @@ Each executed scenario is assigned a unique ID. To get details about a specific 
 python3 shakeclient.py info 1
 ```
 Example Output:
-```json
-{
-  "id": 1,
-  "timestamp": "2025-02-14 12:34:56",
-  "params": {
-    "magnitude": 5.5,
-    "longitude": 12.34,
-    "latitude": -45.67,
-    "depth": 10,
-    "strike": 120,
-    "dip": 45,
-    "rake": 90
-  }
-}
+```
+Scenario Details:
+========================================
+  ID:         1
+  Timestamp:  2025-02-14 12:34:56
+----------------------------------------
+  Magnitude:  5.5
+  Longitude:  12.34
+  Latitude:   -45.67
+  Depth:      10 km
+  Strike:     120°
+  Dip:        45°
+  Rake:       90°
+========================================
 ```
 
 ### List all stored scenarios
@@ -92,8 +92,11 @@ python3 shakeclient.py list
 ```
 Example Output:
 ```
-ID 1 - 2025-02-14 12:34:56 - Magnitude: 5.5
-ID 2 - 2025-02-15 08:20:10 - Magnitude: 4.8
+Stored Scenarios:
+========================================
+  ID 1  |  2025-02-14 12:34:56  |  Magnitude: 5.5
+  ID 2  |  2025-02-15 08:20:10  |  Magnitude: 4.8
+========================================
 ```
 
 ### Delete a specific scenario
