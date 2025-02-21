@@ -102,16 +102,6 @@ Stored Scenarios:
 ========================================
 ```
 
-### Mark a job as completed
-To manually mark a job as completed (this is usually done by the supercomputer):
-```sh
-python3 shakeclient.py complete 1
-```
-Example Output:
-```
-Job ID 1 marked as completed.
-```
-
 ### Delete a specific scenario
 To remove a scenario from the database, provide its ID:
 ```sh
