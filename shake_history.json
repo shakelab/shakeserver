@@ -26,5 +26,19 @@
       "rake": null
     },
     "completed": false
+  },
+  {
+    "id": 3,
+    "timestamp": "2025-02-21 12:58:22",
+    "params": {
+      "magnitude": 4.0,
+      "longitude": 12.34,
+      "latitude": -45.67,
+      "depth": 10.0,
+      "strike": null,
+      "dip": null,
+      "rake": null
+    },
+    "completed": true
   }
 ]

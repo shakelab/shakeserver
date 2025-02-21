@@ -53,16 +53,18 @@ def save_history(history):
 def run_scenario(params):
     """Register a new seismic scenario and return its job ID."""
     history = load_history()
-    job_id = len(history) + 1
+    job_id = len(history) + 1  # Generate a unique job ID
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     try:
         # Send the job to the supercomputer (non-blocking)
         cmd = ["./urgentshake.py",
+               str(job_id),  # Now the first argument is the job ID
                str(params["magnitude"]),
                str(params["longitude"]),
                str(params["latitude"]),
                str(params["depth"])]
+
         if params["strike"] is not None:
             cmd.append(str(params["strike"]))
         if params["dip"] is not None:
@@ -70,7 +72,7 @@ def run_scenario(params):
         if params["rake"] is not None:
             cmd.append(str(params["rake"]))
 
-        subprocess.Popen(cmd)  # Non blocca il server
+        subprocess.Popen(cmd)  # Non-blocking execution
     except FileNotFoundError:
         return "Error: urgentshake.py not found or not executable."
 
