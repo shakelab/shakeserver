@@ -7,6 +7,8 @@ It allows users to launch new simulations, retrieve stored calculations, and man
 - Start a new seismic scenario simulation with required and optional parameters.
 - Retrieve information about past simulations in a well-formatted output.
 - Manage stored simulations (list, delete, or reset the database).
+- Monitor job completion status (`Pending` or `Completed`).
+- External notification system for marking jobs as completed.
 - Flexible configuration of server host and port.
 
 ## Running the Server
@@ -74,6 +76,7 @@ Scenario Details:
 ========================================
   ID:         1
   Timestamp:  2025-02-14 12:34:56
+  Status:     Pending
 ----------------------------------------
   Magnitude:  5.5
   Longitude:  12.34
@@ -86,7 +89,7 @@ Scenario Details:
 ```
 
 ### List all stored scenarios
-Retrieve a list of all recorded simulations:
+Retrieve a list of all recorded simulations along with their status (`Pending` or `Completed`):
 ```sh
 python3 shakeclient.py list
 ```
@@ -94,9 +97,19 @@ Example Output:
 ```
 Stored Scenarios:
 ========================================
-  ID 1  |  2025-02-14 12:34:56  |  Magnitude: 5.5
-  ID 2  |  2025-02-15 08:20:10  |  Magnitude: 4.8
+  ID 1  |  2025-02-14 12:34:56  |  Magnitude: 5.5  |  Pending
+  ID 2  |  2025-02-15 08:20:10  |  Magnitude: 4.8  |  Completed
 ========================================
+```
+
+### Mark a job as completed
+To manually mark a job as completed (this is usually done by the supercomputer):
+```sh
+python3 shakeclient.py complete 1
+```
+Example Output:
+```
+Job ID 1 marked as completed.
 ```
 
 ### Delete a specific scenario
@@ -122,6 +135,27 @@ All jobs deleted.
 ### Display help information
 ```sh
 python3 shakeclient.py --help
+```
+
+## External Job Completion Notification (Supercomputer Integration)
+
+When a job is executed on an external supercomputer, the process might take several hours. 
+Instead of blocking the server, the completion notification is sent asynchronously using `returnstatus.py`, 
+which runs when the job is finished.
+
+### Usage of `returnstatus.py`
+On the supercomputer, at the end of the job execution, execute:
+```sh
+python3 returnstatus.py --host 192.168.1.100 --port 5001 42
+```
+Where:
+- `192.168.1.100` is the IP of the ShakeServer.
+- `5001` is the port where ShakeServer is listening.
+- `42` is the job ID to mark as completed.
+
+Example Output:
+```
+Server response: Job ID 42 marked as completed.
 ```
 
 ## Configuration

@@ -51,12 +51,13 @@ def save_history(history):
 
 
 def run_scenario(params):
-    """Run a shake scenario and record it in the database."""
+    """Register a new seismic scenario and return its job ID."""
     history = load_history()
     job_id = len(history) + 1
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     try:
+        # Send the job to the supercomputer (non-blocking)
         cmd = ["./urgentshake.py",
                str(params["magnitude"]),
                str(params["longitude"]),
@@ -69,25 +70,45 @@ def run_scenario(params):
         if params["rake"] is not None:
             cmd.append(str(params["rake"]))
 
-        subprocess.Popen(cmd)
+        subprocess.Popen(cmd)  # Non blocca il server
     except FileNotFoundError:
         return "Error: urgentshake.py not found or not executable."
 
-    entry = {"id": job_id, "timestamp": timestamp, "params": params}
+    entry = {
+        "id": job_id,
+        "timestamp": timestamp,
+        "params": params,
+        "completed": False  # Initially set as incomplete
+    }
     history.append(entry)
     save_history(history)
 
     return str(job_id)  # Return only the job ID
 
 
+def mark_scenario_completed(job_id):
+    """Mark a seismic scenario as completed in the database."""
+    history = load_history()
+    for entry in history:
+        if entry["id"] == job_id:
+            entry["completed"] = True
+            save_history(history)
+            return f"Job ID {job_id} marked as completed."
+    return f"Job ID {job_id} not found."
+
+
 def list_scenarios():
-    """List all recorded shake scenarios."""
+    """List all recorded shake scenarios with status."""
     history = load_history()
     if not history:
         return "No jobs recorded."
-    return "\n".join([f"ID {e['id']} - {e['timestamp']} - "
-                      f"Magnitude: {e['params']['magnitude']}"
-                      for e in history])
+    
+    result = []
+    for e in history:
+        status = "Completed" if e["completed"] else "Pending"
+        result.append(f"ID {e['id']} - {e['timestamp']} - Magnitude: {e['params']['magnitude']} - Status: {status}")
+    
+    return "\n".join(result)
 
 
 def get_scenario_info(job_id):
@@ -95,6 +116,7 @@ def get_scenario_info(job_id):
     history = load_history()
     for entry in history:
         if entry["id"] == job_id:
+            entry["status"] = "Completed" if entry["completed"] else "Pending"
             return json.dumps(entry, indent=2)
     return f"Job ID {job_id} not found."
 
@@ -129,16 +151,24 @@ def handle_client(conn):
             response = run_scenario(params)
         except json.JSONDecodeError:
             response = "Error: Invalid JSON format in request."
+
     elif data == "list":
         response = list_scenarios()
+
     elif data.startswith("info"):
         _, job_id = data.split()
         response = get_scenario_info(int(job_id))
+
     elif data.startswith("delete"):
         _, job_id = data.split()
         response = delete_scenario(int(job_id))
+
     elif data == "reset":
         response = reset_history()
+
+    elif data.startswith("complete"):
+        _, job_id = data.split()
+        response = mark_scenario_completed(int(job_id))
 
     conn.sendall(response.encode())
     conn.close()
@@ -169,11 +199,6 @@ if __name__ == "__main__":
         "--port", type=int, default=DEFAULT_PORT,
         help=f"Port to bind the server (default: {DEFAULT_PORT})"
     )
-
-    # Se il server viene avviato senza argomenti validi, mostra l'help
-    if len(os.sys.argv) == 1:
-        parser.print_help()
-        os.sys.exit(1)
 
     args = parser.parse_args()
     start_server(args.host, args.port)

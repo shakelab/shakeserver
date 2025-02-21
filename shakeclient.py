@@ -41,26 +41,6 @@ def send_command(host, port, command):
     return response
 
 
-def format_scenario_output(response, params):
-    """Format the output of a scenario run in a readable way."""
-    print("\nScenario started successfully:\n")
-    print("Parameters:")
-    print(f"  Magnitude:  {params['magnitude']}")
-    print(f"  Longitude:  {params['longitude']}")
-    print(f"  Latitude:   {params['latitude']}")
-    print(f"  Depth:      {params['depth']} km")
-
-    if params["strike"] is not None:
-        print(f"  Strike:     {params['strike']}°")
-    if params["dip"] is not None:
-        print(f"  Dip:        {params['dip']}°")
-    if params["rake"] is not None:
-        print(f"  Rake:       {params['rake']}°")
-
-    print("\nServer Response:")
-    print(f"  Scenario ID: {response.strip()}")
-
-
 def format_info_output(response):
     """Format the output of a scenario info request in a readable way."""
     try:
@@ -69,10 +49,13 @@ def format_info_output(response):
         print("Error: Invalid response from server.")
         return
 
+    status = "Completed" if data.get("completed", False) else "Pending"
+
     print("\nScenario Details:")
     print("=" * 40)
     print(f"  ID:         {data['id']}")
     print(f"  Timestamp:  {data['timestamp']}")
+    print(f"  Status:     {status}")
     print("-" * 40)
     print(f"  Magnitude:  {data['params']['magnitude']}")
     print(f"  Longitude:  {data['params']['longitude']}")
@@ -96,14 +79,15 @@ def format_list_output(response):
         return
 
     print("\nStored Scenarios:")
-    print("=" * 40)
+    print("=" * 50)
 
     for line in response.split("\n"):
         if line.strip():
             parts = line.split(" - ")
-            print(f"  {parts[0]}  |  {parts[1]}  |  Magnitude: {parts[2]}")
+            job_id, timestamp, magnitude, status = parts[0], parts[1], parts[2], parts[3]
+            print(f"  {job_id}  |  {timestamp}  |  {magnitude}  |  {status}")
 
-    print("=" * 40)
+    print("=" * 50)
 
 
 def main():
@@ -141,6 +125,10 @@ def main():
     info_parser = subparsers.add_parser("info", help="Get details of a specific scenario")
     info_parser.add_argument("id", type=int, help="Scenario ID")
 
+    # complete <id>
+    complete_parser = subparsers.add_parser("complete", help="Mark a scenario as completed")
+    complete_parser.add_argument("id", type=int, help="Scenario ID")
+
     # delete <id>
     delete_parser = subparsers.add_parser("delete", help="Delete a scenario")
     delete_parser.add_argument("id", type=int, help="Scenario ID")
@@ -168,7 +156,7 @@ def main():
             "rake": args.rake,
         }
         response = send_command(host, port, f"run {json.dumps(params)}")
-        format_scenario_output(response, params)
+        print(f"\nScenario started. Job ID: {response.strip()}")
 
     elif args.command == "list":
         response = send_command(host, port, "list")
@@ -177,6 +165,10 @@ def main():
     elif args.command == "info":
         response = send_command(host, port, f"info {args.id}")
         format_info_output(response)
+
+    elif args.command == "complete":
+        response = send_command(host, port, f"complete {args.id}")
+        print(response)
 
     elif args.command == "delete":
         response = send_command(host, port, f"delete {args.id}")
