@@ -23,6 +23,7 @@
 """
 """
 
+import io
 import os
 import json
 import subprocess
@@ -30,11 +31,13 @@ import socket
 import threading
 import time
 import argparse
+import shutil
+import struct
 
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 5001
 HISTORY_FILE = "shake_history.json"
-
+OUTPUT_FOLDER = "./output"
 
 def load_history():
     """Load job history from file."""
@@ -123,6 +126,27 @@ def get_scenario_info(job_id):
     return f"Job ID {job_id} not found."
 
 
+def download_scenario(job_id):
+    """Download a scenario's output folder."""
+    target_folder = os.path.join(OUTPUT_FOLDER, str(job_id))
+
+    if not os.path.isdir(target_folder):
+        return b"NO DATA\n"
+
+    zip_path = f"{target_folder}.zip"
+    shutil.make_archive(target_folder, 'zip', target_folder)
+
+    # Read the compressed file
+    with open(zip_path, "rb") as f:
+        file_data = f.read()
+
+    # Clean up the temporary ZIP file
+    os.remove(zip_path)
+
+    # Send the file size followed by the binary file data
+    return struct.pack("!Q", len(file_data)) + file_data
+
+
 def delete_scenario(job_id):
     """Delete a specific scenario by ID."""
     history = load_history()
@@ -144,35 +168,40 @@ def reset_history():
 def handle_client(conn):
     """Handle incoming client requests."""
     data = conn.recv(1024).decode().strip()
-    response = "Unknown command."
+    response = b"Unknown command."
 
     if data.startswith("run"):
         _, params_str = data.split(" ", 1)
         try:
-            params = json.loads(params_str)  # Use JSON for safe conversion
-            response = run_scenario(params)
+            # Use JSON for safe conversion
+            params = json.loads(params_str)
+            response = run_scenario(params).encode()
         except json.JSONDecodeError:
-            response = "Error: Invalid JSON format in request."
+            response = b"Error: Invalid JSON format in request."
 
     elif data == "list":
-        response = list_scenarios()
+        response = list_scenarios().encode()
 
     elif data.startswith("info"):
         _, job_id = data.split()
-        response = get_scenario_info(int(job_id))
+        response = get_scenario_info(int(job_id)).encode()
+
+    elif data.startswith("download"):
+        _, job_id = data.split()
+        response = download_scenario(int(job_id))
 
     elif data.startswith("delete"):
         _, job_id = data.split()
-        response = delete_scenario(int(job_id))
+        response = delete_scenario(int(job_id)).encode()
 
     elif data == "reset":
-        response = reset_history()
+        response = reset_history().encode()
 
     elif data.startswith("complete"):
         _, job_id = data.split()
-        response = mark_scenario_completed(int(job_id))
+        response = mark_scenario_completed(int(job_id)).encode()
 
-    conn.sendall(response.encode())
+    conn.sendall(response)
     conn.close()
 
 

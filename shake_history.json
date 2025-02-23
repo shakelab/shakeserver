@@ -15,9 +15,9 @@
   },
   {
     "id": 2,
-    "timestamp": "2025-02-21 12:25:45",
+    "timestamp": "2025-02-21 17:17:58",
     "params": {
-      "magnitude": 8.0,
+      "magnitude": 5.0,
       "longitude": 12.34,
       "latitude": -45.67,
       "depth": 10.0,
@@ -25,13 +25,13 @@
       "dip": null,
       "rake": null
     },
-    "completed": false
+    "completed": true
   },
   {
     "id": 3,
-    "timestamp": "2025-02-21 12:58:22",
+    "timestamp": "2025-02-21 17:18:45",
     "params": {
-      "magnitude": 4.0,
+      "magnitude": 5.0,
       "longitude": 12.34,
       "latitude": -45.67,
       "depth": 10.0,

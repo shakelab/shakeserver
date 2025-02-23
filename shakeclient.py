@@ -23,13 +23,16 @@
 """
 """
 
+import os
+import sys
+import json
 import socket
 import argparse
-import json
-import sys
+import struct
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 5001
+DEFAULT_PATH = "./"
 
 
 def send_command(host, port, command):
@@ -90,6 +93,44 @@ def format_list_output(response):
     print("=" * 50)
 
 
+def download_file(host, port, job_id, file_path):
+    """Request a scenario download from the server and save it locally."""
+    file_path = os.path.join(file_path, f"{job_id}.zip")
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((host, port))
+            s.sendall(f"download {job_id}".encode())
+
+            file_size_data = s.recv(8)
+
+            try:
+                if "NO DATA" in file_size_data.decode().strip():
+                    return f"Error: No data available"
+            except:
+                pass
+
+            file_size = struct.unpack("!Q", file_size_data)[0]
+
+            # Receive the file data
+            received_data = b""
+            while len(received_data) < file_size:
+                chunk = s.recv(min(4096, file_size - len(received_data)))
+                if not chunk:
+                    break
+                received_data += chunk
+
+            if len(received_data) == file_size:
+                with open(file_path, "wb") as f:
+                    f.write(received_data)
+                return f"Download completed: {file_path}"
+            else:
+                return f"Error: Incomplete file received."
+
+    except ConnectionError:
+        return f"Error: Unable to connect to the server."
+
+
 def main():
     """Parse command-line arguments and send the corresponding command."""
     parser = argparse.ArgumentParser(
@@ -124,6 +165,11 @@ def main():
     # info <id>
     info_parser = subparsers.add_parser("info", help="Get details of a specific scenario")
     info_parser.add_argument("id", type=int, help="Scenario ID")
+
+    # download <id>
+    download_parser = subparsers.add_parser("download", help="Download scenario output")
+    download_parser.add_argument("id", type=int, help="Scenario ID to download")
+    download_parser.add_argument("path", nargs="?", default=DEFAULT_PATH, help="Optional download path (default: current directory)")
 
     # complete <id>
     complete_parser = subparsers.add_parser("complete", help="Mark a scenario as completed")
@@ -168,6 +214,10 @@ def main():
 
     elif args.command == "complete":
         response = send_command(host, port, f"complete {args.id}")
+        print(response)
+
+    elif args.command == "download":
+        response = download_file(host, port, args.id, args.path)
         print(response)
 
     elif args.command == "delete":
