@@ -93,31 +93,25 @@ def format_list_output(response):
     print("=" * 50)
 
 
-def download_file(host, port, job_id, file_path):
+def download_output(host, port, job_id, file_path):
     """Request a scenario download from the server and save it locally."""
     file_path = os.path.join(file_path, f"{job_id}.zip")
-
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((host, port))
             s.sendall(f"download {job_id}".encode())
-
             file_size_data = s.recv(8)
 
-            try:
-                if "NO DATA" in file_size_data.decode().strip():
-                    return f"Error: No data available"
-            except:
-                pass
+            if b"NO DATA" in file_size_data:
+                return "Error: No data available"
 
             file_size = struct.unpack("!Q", file_size_data)[0]
-
-            # Receive the file data
             received_data = b""
+
             while len(received_data) < file_size:
                 chunk = s.recv(min(4096, file_size - len(received_data)))
                 if not chunk:
-                    break
+                    raise ConnectionError("Connection lost during download.")
                 received_data += chunk
 
             if len(received_data) == file_size:
@@ -125,10 +119,13 @@ def download_file(host, port, job_id, file_path):
                     f.write(received_data)
                 return f"Download completed: {file_path}"
             else:
-                return f"Error: Incomplete file received."
+                return "Error: Incomplete file received."
 
-    except ConnectionError:
-        return f"Error: Unable to connect to the server."
+    except ConnectionError as e:
+        return f"Error: {str(e)}"
+
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 def main():
@@ -217,7 +214,7 @@ def main():
         print(response)
 
     elif args.command == "download":
-        response = download_file(host, port, args.id, args.path)
+        response = download_output(host, port, args.id, args.path)
         print(response)
 
     elif args.command == "delete":

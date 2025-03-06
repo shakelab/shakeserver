@@ -56,7 +56,7 @@ def main():
     subprocess.run(["sleep", "10"])  # Replace with actual computation command
 
     # Call returnstatus.py to notify completion
-    subprocess.run(["python3", "returnstatus.py", "--host", "127.0.0.1", "--port", "6000", job_id])
+    subprocess.run(["python3", "returnstatus.py", "--host", "127.0.0.1", "--port", "5001", job_id])
 
     print(f"Job {job_id} completed and notified.")
 

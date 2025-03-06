@@ -61,7 +61,7 @@ def run_scenario(params):
 
     try:
         # Send the job to the supercomputer (non-blocking)
-        cmd = ["./urgentshake.py",
+        cmd = ["./dummyfunction.py",
                str(job_id),  # Now the first argument is the job ID
                str(params["magnitude"]),
                str(params["longitude"]),
@@ -77,7 +77,7 @@ def run_scenario(params):
 
         subprocess.Popen(cmd)  # Non-blocking execution
     except FileNotFoundError:
-        return "Error: urgentshake.py not found or not executable."
+        return "Error: dummyfunction.py not found or not executable."
 
     entry = {
         "id": job_id,
@@ -126,7 +126,7 @@ def get_scenario_info(job_id):
     return f"Job ID {job_id} not found."
 
 
-def download_scenario(job_id):
+def send_scenario_output(job_id):
     """Download a scenario's output folder."""
     target_folder = os.path.join(OUTPUT_FOLDER, str(job_id))
 
@@ -134,17 +134,18 @@ def download_scenario(job_id):
         return b"NO DATA\n"
 
     zip_path = f"{target_folder}.zip"
-    shutil.make_archive(target_folder, 'zip', target_folder)
 
-    # Read the compressed file
-    with open(zip_path, "rb") as f:
-        file_data = f.read()
+    try:
+        shutil.make_archive(target_folder, 'zip', target_folder)
 
-    # Clean up the temporary ZIP file
-    os.remove(zip_path)
+        with open(zip_path, "rb") as f:
+            file_data = f.read()
 
-    # Send the file size followed by the binary file data
-    return struct.pack("!Q", len(file_data)) + file_data
+        os.remove(zip_path)
+        return struct.pack("!Q", len(file_data)) + file_data
+
+    except Exception as e:
+        return f"Error: {str(e)}".encode()
 
 
 def delete_scenario(job_id):
@@ -188,7 +189,7 @@ def handle_client(conn):
 
     elif data.startswith("download"):
         _, job_id = data.split()
-        response = download_scenario(int(job_id))
+        response = send_scenario_output(int(job_id))
 
     elif data.startswith("delete"):
         _, job_id = data.split()

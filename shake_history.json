@@ -40,5 +40,33 @@
       "rake": null
     },
     "completed": true
+  },
+  {
+    "id": 4,
+    "timestamp": "2025-02-24 14:30:35",
+    "params": {
+      "magnitude": 9.0,
+      "longitude": 12.34,
+      "latitude": -45.67,
+      "depth": 10.0,
+      "strike": null,
+      "dip": null,
+      "rake": null
+    },
+    "completed": true
+  },
+  {
+    "id": 5,
+    "timestamp": "2025-02-24 16:47:29",
+    "params": {
+      "magnitude": 9.0,
+      "longitude": 12.34,
+      "latitude": -45.67,
+      "depth": 10.0,
+      "strike": null,
+      "dip": null,
+      "rake": null
+    },
+    "completed": true
   }
 ]
